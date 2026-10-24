@@ -1722,7 +1722,7 @@ body.pb-rtl #pb-ai-root{direction:rtl;}
 </script>
 
 <script>
-/* Keşif formu: Netlify Forms'a kaydet + WhatsApp'a hazır mesajla yönlendir */
+/* Keşif formu: FormSubmit ile perbiola@hotmail.com'a gönder + müşteriye teyit maili + WhatsApp'a yönlendir */
 (function(){
   var f=document.getElementById('kesif-form'); if(!f) return;
   var WA='905447277469';
@@ -1730,20 +1730,38 @@ body.pb-rtl #pb-ai-root{direction:rtl;}
     e.preventDefault();
     var btn=f.querySelector('button[type=submit]'), d=new FormData(f);
     var g=function(k){return (d.get(k)||'').toString().trim();};
+    var ad=g('ad'), tel=g('telefon'), email=g('eposta'), sehir=g('sehir'), tip=g('proje_tipi');
     var msg='Merhaba PERBİOLA, ücretsiz keşif talebim var.%0A'+
-      '• Ad: '+encodeURIComponent(g('ad'))+'%0A'+
-      '• Telefon: '+encodeURIComponent(g('telefon'))+'%0A'+
-      (g('eposta')?'• E-posta: '+encodeURIComponent(g('eposta'))+'%0A':'')+
-      '• Şehir: '+encodeURIComponent(g('sehir'))+'%0A'+
-      '• Proje: '+encodeURIComponent(g('proje_tipi'));
+      '• Ad: '+encodeURIComponent(ad)+'%0A'+
+      '• Telefon: '+encodeURIComponent(tel)+'%0A'+
+      (email?'• E-posta: '+encodeURIComponent(email)+'%0A':'')+
+      '• Şehir: '+encodeURIComponent(sehir)+'%0A'+
+      '• Proje: '+encodeURIComponent(tip);
     btn.disabled=true;
-    fetch('/',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(d).toString()})
-      .catch(function(){})
+    btn.textContent='Gönderiliyor...';
+
+    var payload = {
+      "Ad Soyad": ad,
+      "Telefon": tel,
+      "E-posta": email || 'Belirtilmedi',
+      "Şehir": sehir,
+      "Proje Tipi": tip,
+      "_subject": "Yeni Keşif Talebi: " + ad + " (" + sehir + " - " + tip + ")",
+      "_replyto": email || 'perbiola@hotmail.com',
+      "_template": "table",
+      "_autoresponse": "Sayın " + ad + ",\n\nPERBİOLA ücretsiz keşif talebiniz başarıyla tarafımıza ulaşmıştır. Bölge danışmanımız en kısa sürede keşif randevusu için sizinle iletişime geçecektir.\n\nSaygılarımızla,\nPERBİOLA Bioklimatik Pergola & Kış Bahçesi Sistemleri\nE-posta: info@perbiola.com.tr\nWeb: https://perbiola.com.tr\nWhatsApp: +90 544 727 74 69"
+    };
+
+    fetch('https://formsubmit.co/ajax/perbiola@hotmail.com', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(payload)
+    }).catch(function(){})
       .finally(function(){
         btn.textContent=(window.PB_I18N?PB_I18N.t('cta.submitted'):'Talebiniz alındı ✓');
         if(window.gtag) gtag('event','generate_lead',{form:'kesif'});
         window.open('https://wa.me/'+WA+'?text='+msg,'_blank');
-        f.reset(); setTimeout(function(){btn.disabled=false;},4000);
+        f.reset(); setTimeout(function(){btn.disabled=false;btn.textContent=(window.PB_I18N?PB_I18N.t('cta.submitBtn'):'Keşif Talebi Gönder');},4000);
       });
   });
 })();
