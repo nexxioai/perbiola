@@ -796,15 +796,52 @@ form.consult textarea::placeholder {
   font-weight: 500 !important;
 }
 
-/* Kullanıcı veri girdiğinde metin rengi net ve parlak beyaz */
+/* Kutucuklar Turuncu-Siyah Tasarım: Yazılar doldurulduğunda siyah zemin üzerinde canlı turuncu */
 form.consult input {
-  color: #FFFFFF !important;
-  -webkit-text-fill-color: #FFFFFF !important;
+  color-scheme: dark !important;
+  background: #17181B !important;
+  color: #FF5722 !important;
+  -webkit-text-fill-color: #FF5722 !important;
+  caret-color: #FF5722 !important;
+  font-weight: 500 !important;
 }
+
 form.consult input:focus {
+  background: #17181B !important;
   border-color: #FF5722 !important;
   box-shadow: 0 0 0 1px #FF5722 !important;
   outline: none !important;
+}
+
+/* Chrome, Safari, iOS, Edge Otomatik Doldurma (Autofill) Beyazlığını Tamamen Yok Etme */
+form.consult input:-webkit-autofill,
+form.consult input:-webkit-autofill:hover, 
+form.consult input:-webkit-autofill:focus, 
+form.consult input:-webkit-autofill:active,
+form.consult textarea:-webkit-autofill,
+form.consult textarea:-webkit-autofill:hover,
+form.consult textarea:-webkit-autofill:focus,
+form.consult textarea:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #17181B inset !important;
+  box-shadow: 0 0 0 1000px #17181B inset !important;
+  -webkit-text-fill-color: #FF5722 !important;
+  color: #FF5722 !important;
+  caret-color: #FF5722 !important;
+  border: 1px solid #FF5722 !important;
+  font-weight: 500 !important;
+  transition: background-color 50000s ease-in-out 0s !important;
+}
+
+/* Firefox Otomatik Doldurma */
+form.consult input:-moz-autofill,
+form.consult input:-moz-autofill:hover,
+form.consult input:-moz-autofill:focus {
+  box-shadow: 0 0 0 1000px #17181B inset !important;
+  -moz-text-fill-color: #FF5722 !important;
+  color: #FF5722 !important;
+  border: 1px solid #FF5722 !important;
+  font-weight: 500 !important;
+  filter: none !important;
 }
 
 /* 2. Proje Tipi Menüsü (Custom Select) */
