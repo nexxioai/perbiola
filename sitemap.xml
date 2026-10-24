@@ -1,45 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://perbiola.com.tr/</loc>
     <lastmod>2026-10-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://perbiola.com.tr/#urunler</loc>
-    <lastmod>2026-10-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://perbiola.com.tr/#cozumler</loc>
-    <lastmod>2026-10-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://perbiola.com.tr/#projeler</loc>
-    <lastmod>2026-10-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://perbiola.com.tr/#ozellikler</loc>
-    <lastmod>2026-10-24</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://perbiola.com.tr/#sss</loc>
-    <lastmod>2026-10-24</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://perbiola.com.tr/#kesif</loc>
-    <lastmod>2026-10-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://perbiola.com.tr/assets/hero-poster.jpg</image:loc>
+      <image:title>PERBİOLA Bioklimatik Pergola ve Kış Bahçesi Sistemleri</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://perbiola.com.tr/img/ai_kis_bahcesi.jpg</image:loc>
+      <image:title>PERBİOLA Kış Bahçesi Sistemleri</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://perbiola.com.tr/img/ai_giyotin.jpg</image:loc>
+      <image:title>PERBİOLA Motorlu Giyotin Cam Sistemi</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://perbiola.com.tr/img/ai_cam_balkon.jpg</image:loc>
+      <image:title>PERBİOLA Katlanır ve Sürme Cam Sistemleri</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://perbiola.com.tr/img/ai_zip_villa.jpg</image:loc>
+      <image:title>PERBİOLA Motorlu Zip Perde</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://perbiola.com.tr/img/ai_rooftop.jpg</image:loc>
+      <image:title>PERBİOLA Teras ve Çatı Katı Pergola</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://perbiola.com.tr/img/ai_otel.jpg</image:loc>
+      <image:title>PERBİOLA Otel ve Restoran Dış Mekan Çözümleri</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://perbiola.com.tr/img/ai_led_gece.jpg</image:loc>
+      <image:title>PERBİOLA LED Aydınlatmalı Bioklimatik Pergola</image:title>
+    </image:image>
   </url>
 </urlset>
