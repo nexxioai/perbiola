@@ -2127,7 +2127,7 @@ body.pb-ai-modal-open {
     }
     function addUserPhotos(items) {
       if (!items.length) return;
-      var wrap = el('div', { class: 'pb-ai-photos' });
+      var wrap = el('div', { class: 'pb-ai-msg-photos' });
       items.forEach(function (item) {
         var inner = item.dataUrl ? el('img', { src: item.dataUrl, alt: item.name }) : el('div', { class: 'pb-ai-thumb-file' }, [document.createTextNode(item.name.slice(0, 12))]);
         wrap.appendChild(el('div', { class: 'pb-ai-thumb' }, [inner]));
