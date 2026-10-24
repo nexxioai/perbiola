@@ -721,11 +721,26 @@ body.pb-rtl #pb-ai-root{direction:rtl;}
   setupNavDropdown('langDropdown','langDropdownTrigger','langDropdownPanel');
   const toggle = document.querySelector('.nav-toggle');
   const links = document.querySelector('nav.links');
-  toggle.addEventListener('click', ()=>{
+  function closeMobileMenu() {
+    links.style.display = 'none';
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+  toggle.addEventListener('click', (e)=>{
+    e.stopPropagation();
     const shown = links.style.display === 'flex';
     links.style.display = shown ? 'none' : 'flex';
     links.style.cssText += shown ? '' : 'position:absolute;top:76px;left:0;right:0;background:var(--paper);flex-direction:column;padding:24px 32px;border-bottom:1px solid var(--line);z-index:60;';
     toggle.setAttribute('aria-expanded', shown ? 'false' : 'true');
+  });
+  links.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click', function(){
+      if(window.innerWidth <= 980) closeMobileMenu();
+    });
+  });
+  document.addEventListener('click', function(e){
+    if(window.innerWidth <= 980 && !links.contains(e.target) && !toggle.contains(e.target)){
+      closeMobileMenu();
+    }
   });
   document.querySelectorAll('video.js-inview-play').forEach(vid=>{
     const wrap = vid.closest('.video-hero');
@@ -1191,10 +1206,10 @@ body.pb-rtl #pb-ai-root{direction:rtl;}
 </script>
 
 <div class="floating-social">
-  <a href="https://wa.me/905447277469" class="fab fab-wa" aria-label="WhatsApp'tan yazın" data-i18n-aria-label="social.waAria">
+  <a href="https://wa.me/905447277469" class="fab fab-wa" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp'tan yazın" data-i18n-aria-label="social.waAria">
     <svg viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.1-1.33A9.94 9.94 0 0 0 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2Z" fill="#25D366"/><path d="M8.5 8.2c.2-.4.4-.4.6-.4h.5c.16 0 .38 0 .58.44.2.44.68 1.65.74 1.77.06.12.1.26.02.42-.08.16-.12.26-.24.4-.12.14-.25.3-.36.4-.12.12-.24.24-.1.48.14.24.6 1 1.3 1.62.9.8 1.66 1.05 1.9 1.17.24.12.38.1.52-.06.14-.16.6-.7.76-.94.16-.24.32-.2.54-.12.22.08 1.4.66 1.64.78.24.12.4.18.46.28.06.1.06.58-.14 1.14-.2.56-1.16 1.1-1.6 1.14-.42.06-.8.24-2.7-.56-2.28-.96-3.7-3.3-3.82-3.46-.12-.16-.9-1.2-.9-2.28 0-1.08.56-1.6.76-1.82Z" fill="#fff"/></svg>
   </a>
-  <a href="https://instagram.com/perbiola.tr" class="fab fab-ig" aria-label="Instagram'da takip edin" data-i18n-aria-label="social.igAria">
+  <a href="https://instagram.com/perbiola.tr" class="fab fab-ig" target="_blank" rel="noopener noreferrer" aria-label="Instagram'da takip edin" data-i18n-aria-label="social.igAria">
     <svg viewBox="0 0 24 24" fill="none"><defs><linearGradient id="ig-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#7024C4"/><stop offset="0.3" stop-color="#C21975"/><stop offset="0.6" stop-color="#F0537A"/><stop offset="0.85" stop-color="#F79C42"/><stop offset="1" stop-color="#FED573"/></linearGradient></defs><rect x="1" y="1" width="22" height="22" rx="7" fill="url(#ig-grad)"/><rect x="6" y="6" width="12" height="12" rx="3.5" stroke="#fff" stroke-width="1.5"/><circle cx="12" cy="12" r="3.2" stroke="#fff" stroke-width="1.5"/><circle cx="15.6" cy="8.4" r="0.9" fill="#fff"/></svg>
   </a>
 </div>
