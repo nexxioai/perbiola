@@ -2438,98 +2438,40 @@ body.pb-rtl .pb-custom-select-option {
           return photos.map(function (p) { return p.cloudUrl || null; });
         })
       ]).then(function (uploadedUrls) {
-        // Hem masaüstü hem de mobil için çift katmanlı iletim:
-        // 1) Masaüstünde (Outlook) doğrudan görsel kartı ve kutuda önizleme olarak açılması için gerçek dosya ekleri (attachment1, attachment2...)
-        // 2) Mobilde tıklandığında anında tarayıcıda açılması için doğrudan bulut linkleri (cloudUrls)
-        try {
-          var ifrName = 'pb_ai_lead_iframe';
-          var ifr = document.getElementById(ifrName);
-          if (!ifr) {
-            ifr = document.createElement('iframe');
-            ifr.id = ifrName;
-            ifr.name = ifrName;
-            ifr.style.display = 'none';
-            document.body.appendChild(ifr);
-          }
-
-          var hf = document.createElement('form');
-          hf.method = 'POST';
-          hf.action = 'https://formsubmit.co/perbiola@hotmail.com';
-          hf.enctype = 'multipart/form-data';
-          hf.target = ifrName;
-          hf.style.display = 'none';
-
-          var addField = function (name, val) {
-            var inp = document.createElement('input');
-            inp.type = 'hidden';
-            inp.name = name;
-            inp.value = val;
-            hf.appendChild(inp);
-          };
-
-          addField('Ad Soyad', lead.name || '');
-          addField('Telefon', lead.phone || '');
-          addField('Şehir', lead.city || '');
-          addField('İlçe', lead.district || '');
-          addField('Ürün', lead.product || '');
-          addField('Alan Tipi', lead.areaType || '');
-          addField('Ölçü', lead.size || '');
-          addField('Notlar', lead.notes || 'Yok');
-          addField('_subject', 'Yeni Asistan Keşif Talebi: ' + (lead.name || '') + ' (' + (lead.city || '') + ' - ' + (lead.product || '') + ')');
-          addField('_replyto', 'info@perbiola.com.tr');
-          addField('_captcha', 'false');
-          addField('_template', 'table');
-
-          if (photoCount > 0) {
-            addField('Fotoğraf Bilgisi', photoCount + ' adet fotoğraf eklendi (Fotoğraflar yukarıdaki görsel eklerinde ve aşağıdaki linklerde yer almaktadır)');
-
-            // 1. Katman: Mobilde doğrudan tıklanabilirlik için bulut linkleri
-            photos.forEach(function (photo, idx) {
-              var num = idx + 1;
-              var url = (uploadedUrls && uploadedUrls[idx]) || photo.cloudUrl;
-              if (url) {
-                addField('Fotoğraf ' + num + ' Linki', url);
-              }
-            });
-
-            // 2. Katman: Masaüstünde (Outlook) doğrudan görsel kartı ve kutuda önizleme olarak açılması için dosya ekleri (16:48 mimarisi)
-            photos.forEach(function (photo, idx) {
-              var num = idx + 1;
-              var blob = photo.blob;
-              if (!blob && photo.dataUrl) blob = dataURLtoBlob(photo.dataUrl);
-              if (blob && typeof DataTransfer !== 'undefined') {
-                try {
-                  var rawName = photo.name || ('kesif-foto-' + num + '.jpg');
-                  var cleanName = rawName.replace(/[^a-zA-Z0-9\.\-_]/g, '_');
-                  if (!/\.(jpe?g|png|webp)$/i.test(cleanName)) cleanName += '.jpg';
-                  var fileObj = new File([blob], cleanName, { type: blob.type || 'image/jpeg' });
-                  var dt = new DataTransfer();
-                  dt.items.add(fileObj);
-
-                  var finp = document.createElement('input');
-                  finp.type = 'file';
-                  finp.name = 'attachment' + num;
-                  finp.files = dt.files;
-                  hf.appendChild(finp);
-                } catch (errFile) {
-                  console.warn('Dosya eki oluşturma:', errFile);
-                }
-              }
-            });
-          } else {
-            addField('Fotoğraf Bilgisi', 'Yüklenmedi');
-          }
-
-          document.body.appendChild(hf);
-          hf.submit();
-          setTimeout(function () {
-            if (hf.parentNode) hf.parentNode.removeChild(hf);
-          }, 3500);
-        } catch (eHForm) {
-          console.warn('Hidden form submit hatası:', eHForm);
+        var validUrls = [];
+        if (Array.isArray(uploadedUrls)) {
+          uploadedUrls.forEach(function (u, i) {
+            if (u) validUrls.push(u);
+            else if (photos[i] && photos[i].cloudUrl) validUrls.push(photos[i].cloudUrl);
+          });
         }
 
-        console.log('Asistan keşif talebi başarıyla iletildi.');
+        var payload = {
+          name: lead.name || '',
+          phone: lead.phone || '',
+          city: lead.city || '',
+          district: lead.district || '',
+          product: lead.product || '',
+          areaType: lead.areaType || '',
+          size: lead.size || '',
+          notes: lead.notes || '',
+          photos: validUrls
+        };
+
+        return fetch('https://perbiola-mail-api.nexxio-ai.workers.dev', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        }).then(function (res) {
+          if (!res.ok) console.warn('Mail API response status:', res.status);
+          return res.json().catch(function () { return {}; });
+        }).then(function (data) {
+          console.log('Asistan keşif talebi başarıyla iletildi:', data);
+        }).catch(function (err) {
+          console.warn('Mail API iletim hatası:', err);
+        });
       }).then(function () {
         if (window.gtag) gtag('event', 'generate_lead', { form: 'asistan' });
         return lead;
@@ -3283,69 +3225,22 @@ body.pb-rtl .pb-custom-select-option {
       'Web: https://perbiola.com.tr\n' +
       'WhatsApp: +90 544 727 74 69';
 
-    // 1) Müşteriye _autoresponse gönderimi (standart HTML POST via hidden iframe)
-    if (email) {
-      try {
-        var hf = document.createElement('form');
-        hf.method = 'POST';
-        hf.action = 'https://formsubmit.co/perbiola@hotmail.com';
-        hf.target = 'pb_form_iframe';
-        hf.style.display = 'none';
+    // Perbiola Mail API üzerinden güvenli, doğrudan ve kotasız iletim
+    var payload = {
+      name: ad,
+      phone: tel,
+      email: email || '',
+      city: sehir,
+      product: tip,
+      notes: 'Web Sitesi İletişim / Keşif Formu'
+    };
 
-        var fields = {
-          '_captcha': 'false',
-          '_template': 'table',
-          'email': email,
-          '_replyto': 'info@perbiola.com.tr',
-          '_subject': 'Yeni Keşif Talebi: ' + ad + ' (' + sehir + ' - ' + tip + ')',
-          'Ad Soyad': ad,
-          'Telefon': tel,
-          'E-posta': email,
-          'Şehir': sehir,
-          'Proje Tipi': tip,
-          '_autoresponse': autoMsg
-        };
-
-        for (var k in fields) {
-          var input = document.createElement('input');
-          input.type = 'hidden';
-          input.name = k;
-          input.value = fields[k];
-          hf.appendChild(input);
-        }
-
-        document.body.appendChild(hf);
-        hf.submit();
-        setTimeout(function(){
-          if (hf.parentNode) hf.parentNode.removeChild(hf);
-        }, 3000);
-      } catch (errFrame) {
-        console.warn('Iframe autoresponse hatası:', errFrame);
-      }
-    }
-
-    // 2) AJAX ile şirket kutusuna (perbiola@hotmail.com) doğrudan iletim
-    var fd = new FormData();
-    fd.append('Ad Soyad', ad);
-    fd.append('Telefon', tel);
-    fd.append('E-posta', email || 'Belirtilmedi');
-    if (email) {
-      fd.append('email', email);
-      fd.append('_replyto', email);
-    } else {
-      fd.append('_replyto', 'info@perbiola.com.tr');
-    }
-    fd.append('Şehir', sehir);
-    fd.append('Proje Tipi', tip);
-    fd.append('_subject', 'Yeni Keşif Talebi: ' + ad + ' (' + sehir + ' - ' + tip + ')');
-    fd.append('_template', 'table');
-
-    fetch('https://formsubmit.co/ajax/perbiola@hotmail.com', {
+    fetch('https://perbiola-mail-api.nexxio-ai.workers.dev', {
       method: 'POST',
-      headers: { 'Accept': 'application/json' },
-      body: fd
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     }).catch(function(err){
-      console.warn('FormSubmit keşif formu hatası:', err);
+      console.warn('Mail API iletişim formu hatası:', err);
     }).finally(function(){
       btn.textContent = (window.PB_I18N ? PB_I18N.t('cta.submitted') : 'Talebiniz Alındı ✓');
       if (window.gtag) gtag('event', 'generate_lead', { form: 'kesif' });
@@ -3362,7 +3257,5 @@ body.pb-rtl .pb-custom-select-option {
   });
 })();
 </script>
-
-<iframe name="pb_form_iframe" id="pb_form_iframe" style="display:none;width:0;height:0;border:0;"></iframe>
 </body>
 </html>
