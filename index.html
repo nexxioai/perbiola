@@ -2340,50 +2340,75 @@ body.pb-rtl .pb-custom-select-option {
    * Tek sorumluluk: lead kaydını oluşturmak. Şimdilik backend'e bağlı değil;
    * ileride Supabase (veya OpenAI destekli bir API route) burada devreye girecek.
    * ======================================================================================= */
+  function dataURLtoBlob(dataurl) {
+    if (!dataurl) return null;
+    try {
+      var arr = dataurl.split(',');
+      var mime = (arr[0].match(/:(.*?);/) || ['', 'image/jpeg'])[1];
+      var bstr = atob(arr[1]);
+      var n = bstr.length;
+      var u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      return new Blob([u8arr], { type: mime });
+    } catch (e) {
+      console.warn('dataURLtoBlob dönüştürme hatası:', e);
+      return null;
+    }
+  }
+
   var leadService = {
     /**
      * @param {Lead} lead
      * @returns {Promise<Lead>}
      */
     createLead: function (lead) {
-      // Talebi hem perbiola@hotmail.com adresine hem de WhatsApp'a güvenle ulaştırır
-      var payload = {
-        "Ad Soyad": lead.name || '',
-        "Telefon": lead.phone || '',
-        "Şehir": lead.city || '',
-        "İlçe": lead.district || '',
-        "Ürün": lead.product || '',
-        "Alan Tipi": lead.areaType || '',
-        "Ölçü": lead.size || '',
-        "Notlar": lead.notes || 'Yok',
-        "Fotoğraf": (lead.photos || []).length ? (lead.photos.length + ' adet fotoğraf eklendi') : 'Yok',
-        "_subject": "Yeni Asistan Keşif Talebi: " + (lead.name || '') + " (" + (lead.city || '') + " - " + (lead.product || '') + ")",
-        "_replyto": "perbiola@hotmail.com",
-        "_template": "table",
-        "_autoresponse": "Sayın " + (lead.name || 'Müşterimiz') + ",\n\nPERBİOLA Keşif Asistanı üzerinden ilettiğiniz talebiniz başarıyla tarafımıza ulaşmıştır. Bölge keşif uzmanımız en kısa sürede randevu için sizinle iletişime geçecektir.\n\nSaygılarımızla,\nPERBİOLA Bioklimatik Pergola & Kış Bahçesi Sistemleri\nE-posta: info@perbiola.com.tr\nWeb: https://perbiola.com.tr\nWhatsApp: +90 544 727 74 69"
-      };
+      // Talebi ve yüklenen fotoğrafları perbiola@hotmail.com adresine eksiksiz ulaştırır
+      var fd = new FormData();
+      fd.append('Ad Soyad', lead.name || '');
+      fd.append('Telefon', lead.phone || '');
+      fd.append('Şehir', lead.city || '');
+      fd.append('İlçe', lead.district || '');
+      fd.append('Ürün', lead.product || '');
+      fd.append('Alan Tipi', lead.areaType || '');
+      fd.append('Ölçü', lead.size || '');
+      fd.append('Notlar', lead.notes || 'Yok');
+      fd.append('_subject', 'Yeni Asistan Keşif Talebi: ' + (lead.name || '') + ' (' + (lead.city || '') + ' - ' + (lead.product || '') + ')');
+      fd.append('_replyto', 'info@perbiola.com.tr');
+      fd.append('_template', 'table');
+
+      var photoCount = (lead.photos || []).length;
+      if (photoCount > 0) {
+        fd.append('Fotoğraf Bilgisi', photoCount + ' adet fotoğraf eklendi (ekte yer almaktadır)');
+        lead.photos.forEach(function (photo, idx) {
+          var blob = photo.blob;
+          if (!blob && photo.dataUrl) {
+            blob = dataURLtoBlob(photo.dataUrl);
+          }
+          if (blob) {
+            var rawName = photo.name || ('kesif-foto-' + (idx + 1) + '.jpg');
+            var cleanName = rawName.replace(/[^a-zA-Z0-9\.\-_]/g, '_');
+            if (!/\.(jpe?g|png|webp)$/i.test(cleanName)) cleanName += '.jpg';
+            // FormSubmit dosya eki olarak 'attachment' kabul eder
+            fd.append('attachment', blob, cleanName);
+          }
+        });
+      } else {
+        fd.append('Fotoğraf Bilgisi', 'Yüklenmedi');
+      }
 
       fetch('https://formsubmit.co/ajax/perbiola@hotmail.com', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify(payload)
+        headers: { 'Accept': 'application/json' },
+        body: fd
+      }).then(function (res) {
+        return res.json();
+      }).then(function (data) {
+        console.log('Asistan keşif talebi ve fotoğraflar FormSubmit ile iletildi:', data);
       }).catch(function (e) {
-        console.warn('FormSubmit asistan fetch:', e);
+        console.warn('FormSubmit asistan fetch hatası:', e);
       });
-
-      var photoCount = (lead.photos || []).length;
-      var t = 'Merhaba PERBİOLA, keşif asistanından talebim var.\n• Ad: ' + (lead.name || '') +
-        '\n• Telefon: ' + (lead.phone || '') +
-        '\n• Konum: ' + (lead.city || '') + ' / ' + (lead.district || '') +
-        '\n• Ürün: ' + (lead.product || '') +
-        '\n• Alan: ' + (lead.areaType || '') +
-        '\n• Ölçü: ' + (lead.size || '') +
-        (lead.notes ? '\n• Not: ' + lead.notes : '') +
-        (photoCount ? ('\n• Fotoğraf: ' + photoCount + ' adet alan fotoğrafı seçildi (sohbetten iletiyorum)') : '');
-
-      setTimeout(function () {
-        window.open('https://wa.me/905447277469?text=' + encodeURIComponent(t), '_blank');
-      }, 700);
 
       if (window.gtag) gtag('event', 'generate_lead', { form: 'asistan' });
       return Promise.resolve(lead);
@@ -2552,7 +2577,8 @@ body.pb-rtl .pb-custom-select-option {
           var ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, w, h);
           var compressed = canvas.toDataURL('image/jpeg', 0.82);
-          cb({ name: file.name, dataUrl: compressed });
+          var blob = dataURLtoBlob(compressed);
+          cb({ name: file.name, dataUrl: compressed, blob: blob });
         };
         img.onerror = function () {
           cb({ name: file.name, dataUrl: dataUrl });
