@@ -2358,6 +2358,50 @@ body.pb-rtl .pb-custom-select-option {
     }
   }
 
+  function uploadPhotoToCloud(blob, filename) {
+    var cleanName = (filename || 'kesif-foto.jpg').replace(/[^a-zA-Z0-9\.\-_]/g, '_');
+    if (!/\.(jpe?g|png|webp)$/i.test(cleanName)) cleanName += '.jpg';
+
+    // 1. Öncelikli sunucu: api.escuelajs.co (Heroku/S3 altyapısı, kalıcı ve doğrudan CORS destekli)
+    var fd1 = new FormData();
+    fd1.append('file', blob, cleanName);
+
+    var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var signal = controller ? controller.signal : undefined;
+    var timer = controller ? setTimeout(function () { controller.abort(); }, 7000) : null;
+
+    return fetch('https://api.escuelajs.co/api/v1/files/upload', {
+      method: 'POST',
+      body: fd1,
+      signal: signal
+    }).then(function (res) {
+      if (timer) clearTimeout(timer);
+      if (!res.ok) throw new Error('Primary upload status: ' + res.status);
+      return res.json();
+    }).then(function (data) {
+      if (data && data.location) return data.location;
+      throw new Error('No location in primary response');
+    }).catch(function (err) {
+      if (timer) clearTimeout(timer);
+      console.warn('Birinci bulut sunucu uyarısı, yedek sunucu deneniyor...', err);
+      // 2. Yedek sunucu: tmpfiles.org
+      var fd2 = new FormData();
+      fd2.append('file', blob, cleanName);
+      return fetch('https://tmpfiles.org/api/v1/upload', {
+        method: 'POST',
+        body: fd2
+      }).then(function (res2) {
+        if (!res2.ok) throw new Error('Fallback upload status: ' + res2.status);
+        return res2.json();
+      }).then(function (data2) {
+        if (data2 && data2.data && data2.data.url) {
+          return data2.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
+        }
+        throw new Error('No url in fallback response');
+      });
+    });
+  }
+
   var leadService = {
     /**
      * @param {Lead} lead
@@ -2378,36 +2422,83 @@ body.pb-rtl .pb-custom-select-option {
       fd.append('_replyto', 'info@perbiola.com.tr');
       fd.append('_template', 'table');
 
-      var photoCount = (lead.photos || []).length;
-      if (photoCount > 0) {
-        fd.append('Fotoğraf Bilgisi', photoCount + ' adet fotoğraf eklendi (ekte yer almaktadır)');
-        lead.photos.forEach(function (photo, idx) {
-          var blob = photo.blob;
-          if (!blob && photo.dataUrl) {
-            blob = dataURLtoBlob(photo.dataUrl);
-          }
-          if (blob) {
-            var rawName = photo.name || ('kesif-foto-' + (idx + 1) + '.jpg');
-            var cleanName = rawName.replace(/[^a-zA-Z0-9\.\-_]/g, '_');
-            if (!/\.(jpe?g|png|webp)$/i.test(cleanName)) cleanName += '.jpg';
-            // FormSubmit dosya eki olarak 'attachment' kabul eder
-            fd.append('attachment', blob, cleanName);
-          }
-        });
-      } else {
-        fd.append('Fotoğraf Bilgisi', 'Yüklenmedi');
-      }
+      var photos = lead.photos || [];
+      var photoCount = photos.length;
 
-      fetch('https://formsubmit.co/ajax/perbiola@hotmail.com', {
-        method: 'POST',
-        headers: { 'Accept': 'application/json' },
-        body: fd
-      }).then(function (res) {
-        return res.json();
-      }).then(function (data) {
-        console.log('Asistan keşif talebi ve fotoğraflar FormSubmit ile iletildi:', data);
-      }).catch(function (e) {
-        console.warn('FormSubmit asistan fetch hatası:', e);
+      var uploadPromises = photos.map(function (photo, idx) {
+        if (photo.cloudUrl) return Promise.resolve(photo.cloudUrl);
+        if (photo.cloudPromise) return photo.cloudPromise;
+        var b = photo.blob;
+        if (!b && photo.dataUrl) {
+          b = dataURLtoBlob(photo.dataUrl);
+        }
+        if (b) {
+          return uploadPhotoToCloud(b, photo.name || ('kesif-foto-' + (idx + 1) + '.jpg')).catch(function () {
+            return null;
+          });
+        }
+        return Promise.resolve(null);
+      });
+
+      // Fotoğraflar arka planda zaten yüklenmişti. En fazla 3 saniye ek tolerans verip formu gönderelim.
+      var timeoutPromise = new Promise(function (resolve) {
+        setTimeout(resolve, 3000);
+      });
+
+      return Promise.race([
+        Promise.all(uploadPromises),
+        timeoutPromise.then(function () {
+          return photos.map(function (p) { return p.cloudUrl || null; });
+        })
+      ]).then(function (uploadedUrls) {
+        var fd = new FormData();
+        fd.append('Ad Soyad', lead.name || '');
+        fd.append('Telefon', lead.phone || '');
+        fd.append('Şehir', lead.city || '');
+        fd.append('İlçe', lead.district || '');
+        fd.append('Ürün', lead.product || '');
+        fd.append('Alan Tipi', lead.areaType || '');
+        fd.append('Ölçü', lead.size || '');
+        fd.append('Notlar', lead.notes || 'Yok');
+        fd.append('_subject', 'Yeni Asistan Keşif Talebi: ' + (lead.name || '') + ' (' + (lead.city || '') + ' - ' + (lead.product || '') + ')');
+        fd.append('_replyto', 'info@perbiola.com.tr');
+        fd.append('_template', 'table');
+
+        if (photoCount > 0) {
+          fd.append('Fotoğraf Bilgisi', photoCount + ' adet fotoğraf eklendi (Aşağıdaki linklerden direkt açabilirsiniz)');
+          photos.forEach(function (photo, idx) {
+            var num = idx + 1;
+            var url = (uploadedUrls && uploadedUrls[idx]) || photo.cloudUrl;
+            if (url) {
+              fd.append('Fotoğraf ' + num + ' (Açmak İçin Tıklayın)', url);
+            } else {
+              fd.append('Fotoğraf ' + num, 'Yükleniyor / Gönderildi');
+            }
+
+            var blob = photo.blob;
+            if (!blob && photo.dataUrl) blob = dataURLtoBlob(photo.dataUrl);
+            if (blob) {
+              var rawName = photo.name || ('kesif-foto-' + num + '.jpg');
+              var cleanName = rawName.replace(/[^a-zA-Z0-9\.\-_]/g, '_');
+              if (!/\.(jpe?g|png|webp)$/i.test(cleanName)) cleanName += '.jpg';
+              fd.append('attachment[]', blob, cleanName);
+            }
+          });
+        } else {
+          fd.append('Fotoğraf Bilgisi', 'Yüklenmedi');
+        }
+
+        return fetch('https://formsubmit.co/ajax/perbiola@hotmail.com', {
+          method: 'POST',
+          headers: { 'Accept': 'application/json' },
+          body: fd
+        }).then(function (res) {
+          return res.json();
+        }).then(function (data) {
+          console.log('Asistan keşif talebi ve fotoğraflar FormSubmit ile iletildi:', data);
+        }).catch(function (e) {
+          console.warn('FormSubmit asistan fetch hatası:', e);
+        });
       });
 
       if (window.gtag) gtag('event', 'generate_lead', { form: 'asistan' });
@@ -2545,6 +2636,15 @@ body.pb-rtl .pb-custom-select-option {
         var count = 0;
         toProcess.forEach(function (file) {
           compressImage(file, function (item) {
+            if (item.blob) {
+              item.cloudPromise = uploadPhotoToCloud(item.blob, item.name).then(function (url) {
+                item.cloudUrl = url;
+                return url;
+              }).catch(function (e) {
+                console.warn('Fotoğraf bulut yükleme:', e);
+                return null;
+              });
+            }
             collected.push(item);
             thumbs.appendChild(renderThumb(item, function () {
               collected = collected.filter(function (x) { return x !== item; });
