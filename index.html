@@ -2402,6 +2402,87 @@ body.pb-rtl .pb-custom-select-option {
     });
   }
 
+    // Çoklu fotoğrafları masaüstünde tek tıkla tam ekran açılabilmesi için tek bir görselde birleştirir
+  function createCompositePhotoBlob(photos) {
+    if (!photos || photos.length === 0) return Promise.resolve(null);
+    if (photos.length === 1) {
+      var p0 = photos[0];
+      var b0 = p0.blob;
+      if (!b0 && p0.dataUrl) b0 = dataURLtoBlob(p0.dataUrl);
+      if (b0) {
+        var rawName = p0.name || 'kesif-fotografi-1.jpg';
+        var cleanName = rawName.replace(/[^a-zA-Z0-9\.\-_]/g, '_');
+        if (!/\.(jpe?g|png|webp)$/i.test(cleanName)) cleanName += '.jpg';
+        return Promise.resolve({ blob: b0, name: cleanName });
+      }
+      return Promise.resolve(null);
+    }
+
+    var loadPromises = photos.map(function (p) {
+      return new Promise(function (resolve) {
+        var src = p.dataUrl || (p.blob ? URL.createObjectURL(p.blob) : '');
+        if (!src) return resolve(null);
+        var img = new Image();
+        img.onload = function () { resolve(img); };
+        img.onerror = function () { resolve(null); };
+        img.src = src;
+      });
+    });
+
+    return Promise.all(loadPromises).then(function (images) {
+      var validImgs = images.filter(Boolean);
+      if (validImgs.length === 0) return null;
+      if (validImgs.length === 1) {
+        var b = photos[0].blob || dataURLtoBlob(photos[0].dataUrl);
+        return { blob: b, name: 'kesif-fotografi-1.jpg' };
+      }
+
+      var targetWidth = 1200;
+      var totalHeight = 0;
+      var heights = validImgs.map(function (img) {
+        var h = Math.round((targetWidth / (img.width || targetWidth)) * (img.height || 800));
+        totalHeight += h + 36;
+        return h;
+      });
+
+      var canvas = document.createElement('canvas');
+      canvas.width = targetWidth;
+      canvas.height = totalHeight + 30;
+      var ctx = canvas.getContext('2d');
+      if (!ctx) return null;
+
+      ctx.fillStyle = '#171923';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      var curY = 15;
+      validImgs.forEach(function (img, i) {
+        var h = heights[i];
+        ctx.drawImage(img, 0, curY, targetWidth, h);
+
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+        ctx.fillRect(16, curY + 16, 200, 36);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px sans-serif';
+        ctx.fillText('Fotoğraf ' + (i + 1) + ' / ' + validImgs.length, 28, curY + 41);
+
+        curY += h + 36;
+      });
+
+      return new Promise(function (resolve) {
+        canvas.toBlob(function (blob) {
+          if (blob) {
+            resolve({ blob: blob, name: 'kesif-fotograflari-toplu.jpg' });
+          } else {
+            resolve(null);
+          }
+        }, 'image/jpeg', 0.88);
+      });
+    }).catch(function (err) {
+      console.warn('Composite photo oluşturma hatası:', err);
+      return null;
+    });
+  }
+
   var leadService = {
     /**
      * @param {Lead} lead
@@ -2427,18 +2508,26 @@ body.pb-rtl .pb-custom-select-option {
       });
 
       var timeoutPromise = new Promise(function (resolve) {
-        setTimeout(resolve, 2500);
+        setTimeout(resolve, 3800);
       });
 
-      return Promise.race([
-        Promise.all(uploadPromises),
-        timeoutPromise.then(function () {
-          return photos.map(function (p) { return p.cloudUrl || null; });
-        })
-      ]).then(function (uploadedUrls) {
+      var compositePromise = (photoCount > 0) ? createCompositePhotoBlob(photos) : Promise.resolve(null);
+
+      return Promise.all([
+        Promise.race([
+          Promise.all(uploadPromises),
+          timeoutPromise.then(function () {
+            return photos.map(function (p) { return p.cloudUrl || null; });
+          })
+        ]),
+        compositePromise
+      ]).then(function (results) {
+        var uploadedUrls = results[0] || [];
+        var compositeAttachment = results[1] || null;
+
         // Hem masaüstü hem de mobil için çift yönlü iletim:
-        // 1) Bilgisayardan tıklandığında resmin tam ekranda açılması için gerçek dosya ekleri (attachments)
-        // 2) Mobilde tıklandığında anında açılması için doğrudan bulut linkleri (cloudUrls)
+        // 1) Bilgisayardan açıldığında tek tıkla ("Aç" butonu) tam ekranda doğrudan açılması için gerçek dosya eki
+        // 2) Mobilde tıklandığında doğrudan açılması için bulut linkleri (cloudUrls)
         try {
           var ifrName = 'pb_ai_lead_iframe';
           var ifr = document.getElementById(ifrName);
@@ -2479,34 +2568,32 @@ body.pb-rtl .pb-custom-select-option {
           addField('_template', 'table');
 
           if (photoCount > 0) {
-            addField('Fotoğraf Bilgisi', photoCount + ' adet fotoğraf eklendi (Görselleri yukarıdaki eklerden veya aşağıdaki linklerden açabilirsiniz)');
+            addField('Fotoğraf Bilgisi', photoCount + ' adet fotoğraf eklendi. (Bilgisayardan yukarıdaki ekteki "Aç" butonuna tıklayarak doğrudan tam ekran açabilir, mobilden aşağıdaki bağlantılardan açabilirsiniz)');
             photos.forEach(function (photo, idx) {
               var num = idx + 1;
               var url = (uploadedUrls && uploadedUrls[idx]) || photo.cloudUrl;
               if (url) {
                 addField('Fotoğraf ' + num + ' Linki', url);
               }
-              // Dosya eki (bilgisayardan açıldığında doğrudan tıklanabilir görsel kartı olarak açılır)
-              var blob = photo.blob;
-              if (!blob && photo.dataUrl) blob = dataURLtoBlob(photo.dataUrl);
-              if (blob && typeof DataTransfer !== 'undefined') {
-                try {
-                  var rawName = photo.name || ('kesif-foto-' + num + '.jpg');
-                  var cleanName = rawName.replace(/[^a-zA-Z0-9\.\-_]/g, '_');
-                  if (!/\.(jpe?g|png|webp)$/i.test(cleanName)) cleanName += '.jpg';
-                  var fileObj = new File([blob], cleanName, { type: blob.type || 'image/jpeg' });
-                  var dt = new DataTransfer();
-                  dt.items.add(fileObj);
-                  var finp = document.createElement('input');
-                  finp.type = 'file';
-                  finp.name = (num === 1) ? 'attachment' : ('attachment' + num);
-                  finp.files = dt.files;
-                  hf.appendChild(finp);
-                } catch (errFile) {
-                  console.warn('Dosya eki oluşturma:', errFile);
-                }
-              }
             });
+
+            // Bilgisayardan tek tıkla açılması için gerçek dosya eki
+            var attBlob = compositeAttachment ? compositeAttachment.blob : (photos[0].blob || dataURLtoBlob(photos[0].dataUrl));
+            var attName = compositeAttachment ? compositeAttachment.name : ('kesif-fotografi-1.jpg');
+            if (attBlob && typeof DataTransfer !== 'undefined') {
+              try {
+                var fileObj = new File([attBlob], attName, { type: attBlob.type || 'image/jpeg' });
+                var dt = new DataTransfer();
+                dt.items.add(fileObj);
+                var finp = document.createElement('input');
+                finp.type = 'file';
+                finp.name = 'attachment';
+                finp.files = dt.files;
+                hf.appendChild(finp);
+              } catch (errFile) {
+                console.warn('Dosya eki oluşturma:', errFile);
+              }
+            }
           } else {
             addField('Fotoğraf Bilgisi', 'Yüklenmedi');
           }
