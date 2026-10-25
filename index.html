@@ -966,32 +966,32 @@ a {
    KEŞİF / TEKLİF FORMU — CANLI TURUNCU PLACEHOLDER & PROJE TİPİ MENÜSÜ
    ========================================================================= */
 
-/* 1. Kutucukların içindeki örneklendirmeler (Placeholder) - Mobilde ve Webde Canlı Turuncu */
+/* 1. Kutucukların içindeki örneklendirmeler (Placeholder) - İpucu olduğu anlaşılan zarif turuncu */
 form.consult input::-webkit-input-placeholder,
 form.consult textarea::-webkit-input-placeholder {
-  color: #FF5722 !important;
-  -webkit-text-fill-color: #FF5722 !important;
+  color: rgba(255, 87, 34, 0.45) !important;
+  -webkit-text-fill-color: rgba(255, 87, 34, 0.45) !important;
   opacity: 1 !important;
-  font-weight: 500 !important;
+  font-weight: 400 !important;
 }
 form.consult input::-moz-placeholder,
 form.consult textarea::-moz-placeholder {
-  color: #FF5722 !important;
+  color: rgba(255, 87, 34, 0.45) !important;
   opacity: 1 !important;
-  font-weight: 500 !important;
+  font-weight: 400 !important;
 }
 form.consult input:-ms-input-placeholder,
 form.consult textarea:-ms-input-placeholder {
-  color: #FF5722 !important;
+  color: rgba(255, 87, 34, 0.45) !important;
   opacity: 1 !important;
-  font-weight: 500 !important;
+  font-weight: 400 !important;
 }
 form.consult input::placeholder,
 form.consult textarea::placeholder {
-  color: #FF5722 !important;
-  -webkit-text-fill-color: #FF5722 !important;
+  color: rgba(255, 87, 34, 0.45) !important;
+  -webkit-text-fill-color: rgba(255, 87, 34, 0.45) !important;
   opacity: 1 !important;
-  font-weight: 500 !important;
+  font-weight: 400 !important;
 }
 
 /* Kutucuklar Turuncu-Siyah Tasarım: Yazılar doldurulduğunda siyah zemin üzerinde canlı turuncu */
@@ -2409,69 +2409,39 @@ body.pb-rtl .pb-custom-select-option {
      */
     createLead: function (lead) {
       var photos = lead.photos || [];
-      var photoCount = photos.length;
-
-      // 1) Bulut yükleme: Mobilde tıklandığında açılabilmesi için (arka planda hızlıca yükler)
-      var uploadPromises = photos.map(function (photo, idx) {
-        if (photo.cloudUrl) return Promise.resolve(photo.cloudUrl);
-        if (photo.cloudPromise) return photo.cloudPromise;
-        var b = photo.blob;
-        if (!b && photo.dataUrl) {
-          b = dataURLtoBlob(photo.dataUrl);
-        }
-        if (b) {
-          return uploadPhotoToCloud(b, photo.name || ('kesif-foto-' + (idx + 1) + '.jpg')).catch(function () {
-            return null;
-          });
-        }
-        return Promise.resolve(null);
-      });
-
-      // Bulut yükleme için maksimum 2.5 saniye bekle (kullanıcıyı asla bekletmez)
-      var timeoutPromise = new Promise(function (resolve) {
-        setTimeout(resolve, 2500);
-      });
-
-      return Promise.race([
-        Promise.all(uploadPromises),
-        timeoutPromise.then(function () {
-          return photos.map(function (p) { return p.cloudUrl || null; });
-        })
-      ]).then(function (uploadedUrls) {
-        var validUrls = [];
-        if (Array.isArray(uploadedUrls)) {
-          uploadedUrls.forEach(function (u, i) {
-            if (u) validUrls.push(u);
-            else if (photos[i] && photos[i].cloudUrl) validUrls.push(photos[i].cloudUrl);
-          });
-        }
-
-        var payload = {
-          name: lead.name || '',
-          phone: lead.phone || '',
-          city: lead.city || '',
-          district: lead.district || '',
-          product: lead.product || '',
-          areaType: lead.areaType || '',
-          size: lead.size || '',
-          notes: lead.notes || '',
-          photos: validUrls
-        };
-
-        return fetch('https://perbiola-mail-api.nexxio-ai.workers.dev', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        }).then(function (res) {
-          if (!res.ok) console.warn('Mail API response status:', res.status);
-          return res.json().catch(function () { return {}; });
-        }).then(function (data) {
-          console.log('Asistan keşif talebi başarıyla iletildi:', data);
-        }).catch(function (err) {
-          console.warn('Mail API iletim hatası:', err);
+      var photoDataList = [];
+      if (Array.isArray(photos)) {
+        photos.forEach(function (p) {
+          if (p.dataUrl) photoDataList.push(p.dataUrl);
+          else if (p.cloudUrl) photoDataList.push(p.cloudUrl);
         });
+      }
+
+      var payload = {
+        name: lead.name || '',
+        phone: lead.phone || '',
+        city: lead.city || '',
+        district: lead.district || '',
+        product: lead.product || '',
+        areaType: lead.areaType || '',
+        size: lead.size || '',
+        notes: lead.notes || '',
+        photos: photoDataList
+      };
+
+      return fetch('https://perbiola-mail-api.nexxio-ai.workers.dev', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      }).then(function (res) {
+        if (!res.ok) console.warn('Mail API response status:', res.status);
+        return res.json().catch(function () { return {}; });
+      }).then(function (data) {
+        console.log('Asistan keşif talebi başarıyla iletildi:', data);
+      }).catch(function (err) {
+        console.warn('Mail API iletim hatası:', err);
       }).then(function () {
         if (window.gtag) gtag('event', 'generate_lead', { form: 'asistan' });
         return lead;
@@ -3173,6 +3143,15 @@ body.pb-rtl .pb-custom-select-option {
         sumEmailRow.style.display = 'flex';
       } else {
         sumEmailRow.style.display = 'none';
+      }
+    }
+
+    var modalDesc = modal.querySelector('.pb-modal-desc');
+    if (modalDesc) {
+      if (data.email) {
+        modalDesc.innerHTML = 'Bilgileriniz tarafımıza güvenle ulaştı. <strong>' + data.email + '</strong> adresinize teyit e-postası iletildi. Bölgenizdeki PERBİOLA danışmanı 24 saat içinde sizinle iletişime geçecektir.';
+      } else {
+        modalDesc.textContent = 'Bilgileriniz tarafımıza güvenle ulaştı. Bölgenizdeki PERBİOLA danışmanı 24 saat içinde sizinle iletişime geçecektir.';
       }
     }
 
