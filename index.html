@@ -269,6 +269,204 @@ body.pb-rtl .faq-q{text-align:right;}
 body.pb-rtl form.consult label{text-align:right;}
 body.pb-rtl .logo{direction:ltr;}
 body.pb-rtl #pb-ai-root{direction:rtl;}
+
+/* =========================================================================
+   KEŞİF FORMU ONAY EKRANI (PREMIUM DARK & ORANGE MODAL)
+   ========================================================================= */
+.pb-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483640;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 11, 14, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.pb-modal-backdrop.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.pb-modal-dialog {
+  position: relative;
+  width: 100%;
+  max-width: 470px;
+  background: #17181B;
+  border: 1px solid rgba(255, 77, 35, 0.38);
+  border-radius: 16px;
+  padding: 34px 28px 28px;
+  text-align: center;
+  color: #fff;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8), 0 0 40px rgba(255, 77, 35, 0.2);
+  transform: scale(0.92) translateY(14px);
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.pb-modal-backdrop.is-active .pb-modal-dialog {
+  transform: scale(1) translateY(0);
+}
+.pb-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  color: #A0A3A8;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.pb-modal-close:hover {
+  background: rgba(255, 77, 35, 0.2);
+  border-color: #FF4D23;
+  color: #fff;
+  transform: scale(1.08);
+}
+.pb-modal-icon-wrap {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pb-modal-icon-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 77, 35, 0.25) 0%, rgba(255, 77, 35, 0) 70%);
+  animation: pbModalPulse 2s infinite ease-in-out;
+}
+@keyframes pbModalPulse {
+  0%, 100% { transform: scale(0.95); opacity: 0.6; }
+  50% { transform: scale(1.2); opacity: 1; }
+}
+.pb-modal-check {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: block;
+}
+.pb-modal-circle {
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  stroke-width: 3.2;
+  stroke: #FF4D23;
+  fill: rgba(255, 77, 35, 0.08);
+  animation: pbModalStroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+.pb-modal-check-path {
+  transform-origin: 50% 50%;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  stroke-width: 3.5;
+  stroke: #FF4D23;
+  animation: pbModalStroke 0.4s cubic-bezier(0.65, 0, 0.45, 1) 0.5s forwards;
+}
+@keyframes pbModalStroke {
+  100% { stroke-dashoffset: 0; }
+}
+.pb-modal-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #FF4D23;
+  background: rgba(255, 77, 35, 0.12);
+  border: 1px solid rgba(255, 77, 35, 0.3);
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+}
+.pb-modal-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.01em;
+}
+.pb-modal-desc {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #B5B7BC;
+  margin: 0 0 20px 0;
+}
+.pb-modal-summary {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 22px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pb-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  padding-bottom: 6px;
+}
+.pb-summary-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.pb-summary-label {
+  color: #8C8E94;
+  font-weight: 500;
+}
+.pb-summary-val {
+  color: #FF5722;
+  font-weight: 600;
+  text-align: right;
+  max-width: 65%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pb-modal-btn {
+  width: 100%;
+  background: #FF4D23;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 13px 20px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 18px rgba(255, 77, 35, 0.35);
+}
+.pb-modal-btn:hover {
+  background: #E63E15;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(255, 77, 35, 0.45);
+}
+@media (max-width: 480px) {
+  .pb-modal-dialog {
+    padding: 28px 20px 22px;
+  }
+  .pb-modal-title {
+    font-size: 20px;
+  }
+}
+
 </style>
 <style id="gallery-zoom">
 /* Projeler galerisi: hover'da görsel içeride yakınlaşır, kare hafif öne çıkar */
@@ -1468,6 +1666,49 @@ body.pb-rtl .pb-custom-select-option {
   </section>
 
 </main>
+
+  <!-- ONAY EKRANI (MODAL) - Form Gönderim Onayı -->
+  <div id="kesif-success-modal" class="pb-modal-backdrop" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="kesif-modal-title">
+    <div class="pb-modal-dialog">
+      <button type="button" class="pb-modal-close" id="kesif-modal-close-btn" aria-label="Kapat">✕</button>
+      <div class="pb-modal-icon-wrap">
+        <div class="pb-modal-icon-ring"></div>
+        <svg class="pb-modal-check" viewBox="0 0 52 52" aria-hidden="true">
+          <circle class="pb-modal-circle" cx="26" cy="26" r="23" fill="none"/>
+          <path class="pb-modal-check-path" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M14.5 27.2l7.5 7.5 15.5-16.5"/>
+        </svg>
+      </div>
+      <span class="pb-modal-tag" data-i18n="cta.modalTag">KEŞİF TALEBİ ALINDI</span>
+      <h3 id="kesif-modal-title" class="pb-modal-title" data-i18n="cta.modalTitle">Talebiniz Başarıyla İletildi!</h3>
+      <p class="pb-modal-desc" data-i18n="cta.modalDesc">Bilgileriniz tarafımıza güvenle ulaştı. Bölgenizdeki PERBİOLA danışmanı 24 saat içinde sizinle iletişime geçecektir.</p>
+      
+      <div class="pb-modal-summary" id="kesif-modal-summary">
+        <div class="pb-summary-row">
+          <span class="pb-summary-label" data-i18n="cta.labelName">Ad Soyad</span>
+          <strong class="pb-summary-val" id="pb-sum-ad">-</strong>
+        </div>
+        <div class="pb-summary-row">
+          <span class="pb-summary-label" data-i18n="cta.labelPhone">Telefon</span>
+          <strong class="pb-summary-val" id="pb-sum-tel">-</strong>
+        </div>
+        <div class="pb-summary-row" id="pb-sum-email-row" style="display:none;">
+          <span class="pb-summary-label" data-i18n="cta.labelEmail">E-posta</span>
+          <strong class="pb-summary-val" id="pb-sum-email">-</strong>
+        </div>
+        <div class="pb-summary-row">
+          <span class="pb-summary-label" data-i18n="cta.labelCity">Şehir</span>
+          <strong class="pb-summary-val" id="pb-sum-sehir">-</strong>
+        </div>
+        <div class="pb-summary-row">
+          <span class="pb-summary-label" data-i18n="cta.labelType">Proje Tipi</span>
+          <strong class="pb-summary-val" id="pb-sum-tip">-</strong>
+        </div>
+      </div>
+
+      <button type="button" class="pb-modal-btn" id="kesif-modal-ok-btn" data-i18n="cta.modalOk">Tamam, Teşekkürler</button>
+    </div>
+  </div>
+
 <!-- Netlify Forms: Keşif Asistanı talepleri için gizli form (JS ile doldurulur) -->
 <form name="asistan-talebi" data-netlify="true" netlify-honeypot="bot-field" hidden>
   <input name="ad"><input name="telefon"><input name="sehir"><input name="ilce"><input name="urun">
@@ -1695,7 +1936,7 @@ body.pb-rtl .pb-custom-select-option {
 
       "cta.tag":"Ücretsiz Keşif","cta.h2":"Projenizi birlikte tasarlayalım.",
       "cta.pPre":"Bilgilerinizi bırakın, bölgenizdeki","cta.pPost":"danışmanı 24 saat içinde sizinle iletişime geçsin.",
-      "cta.submitted":"Talebiniz alındı ✓","cta.labelName":"Ad Soyad","cta.placeholderName":"Adınız Soyadınız",
+      "cta.submitted":"Talebiniz alındı ✓","cta.modalTag":"KEŞİF TALEBİ ALINDI","cta.modalTitle":"Talebiniz Başarıyla İletildi!","cta.modalDesc":"Bilgileriniz tarafımıza güvenle ulaştı. Bölgenizdeki PERBİOLA danışmanı 24 saat içinde sizinle iletişime geçecektir.","cta.modalOk":"Tamam, Teşekkürler","cta.labelName":"Ad Soyad","cta.placeholderName":"Adınız Soyadınız",
       "cta.labelPhone":"Telefon","cta.placeholderPhone":"05xx xxx xx xx","cta.labelEmail":"E-posta","cta.placeholderEmail":"ornek@eposta.com",
       "cta.labelCity":"Şehir","cta.placeholderCity":"İstanbul","cta.labelType":"Proje Tipi",
       "cta.optKonut":"Konut","cta.optTicari":"Ticari","cta.optTeknikServis":"Teknik Servis","cta.optAcil":"Acil Yardım",
@@ -1813,7 +2054,7 @@ body.pb-rtl .pb-custom-select-option {
 
       "cta.tag":"Free Site Survey","cta.h2":"Let's design your project together.",
       "cta.pPre":"Leave your details and our", "cta.pPost":"consultant in your area will reach you within 24 hours.",
-      "cta.submitted":"Request received ✓","cta.labelName":"Full Name","cta.placeholderName":"Your full name",
+      "cta.submitted":"Request received ✓","cta.modalTag":"SURVEY REQUEST RECEIVED","cta.modalTitle":"Your Request Has Been Sent!","cta.modalDesc":"Your details have been received securely. A PERBİOLA consultant in your area will contact you within 24 hours.","cta.modalOk":"Done, Thank You","cta.labelName":"Full Name","cta.placeholderName":"Your full name",
       "cta.labelPhone":"Phone","cta.placeholderPhone":"e.g. 0532 123 45 67","cta.labelEmail":"Email","cta.placeholderEmail":"you@example.com",
       "cta.labelCity":"City","cta.placeholderCity":"Istanbul","cta.labelType":"Project Type",
       "cta.optKonut":"Residential","cta.optTicari":"Commercial","cta.optTeknikServis":"Technical Service","cta.optAcil":"Emergency Help",
@@ -1931,7 +2172,7 @@ body.pb-rtl .pb-custom-select-option {
 
       "cta.tag":"معاينة مجانية","cta.h2":"لنصمّم مشروعكم معًا.",
       "cta.pPre":"اتركوا بياناتكم، وسيتواصل معكم مستشار","cta.pPost":"في منطقتكم خلال 24 ساعة.",
-      "cta.submitted":"تم استلام طلبكم ✓","cta.labelName":"الاسم الكامل","cta.placeholderName":"اسمكم الكامل",
+      "cta.submitted":"تم استلام طلبكم ✓","cta.modalTag":"تم استلام طلب المعاينة","cta.modalTitle":"تم إرسال طلبكم بنجاح!","cta.modalDesc":"تم استلام بياناتكم بأمان. سيتواصل معكم مستشار بيربيولا في منطقتكم خلال 24 ساعة.","cta.modalOk":"حسنًا، شكرًا لكم","cta.labelName":"الاسم الكامل","cta.placeholderName":"اسمكم الكامل",
       "cta.labelPhone":"الهاتف","cta.placeholderPhone":"مثال: 0532 123 45 67","cta.labelEmail":"البريد الإلكتروني","cta.placeholderEmail":"you@example.com",
       "cta.labelCity":"المدينة","cta.placeholderCity":"إسطنبول","cta.labelType":"نوع المشروع",
       "cta.optKonut":"سكني","cta.optTicari":"تجاري","cta.optTeknikServis":"خدمة فنية","cta.optAcil":"مساعدة طارئة",
@@ -2807,50 +3048,164 @@ body.pb-rtl .pb-custom-select-option {
 </script>
 
 <script>
-/* Keşif formu: FormSubmit ile perbiola@hotmail.com'a gönder + müşteriye teyit maili + WhatsApp'a yönlendir */
+/* Keşif formu: FormSubmit ile perbiola@hotmail.com'a gönder.
+ * WhatsApp yönlendirmesi tamamen kaldırıldı: Bildirim SADECE mail yoluyla sonuçlanır.
+ * Gönderim sonrası sitenin temasına uygun tam onay ekranı (modal) açılır. */
 (function(){
-  var f=document.getElementById('kesif-form'); if(!f) return;
-  var WA='905447277469';
-  f.addEventListener('submit',function(e){
-    e.preventDefault();
-    var btn=f.querySelector('button[type=submit]'), d=new FormData(f);
-    var g=function(k){return (d.get(k)||'').toString().trim();};
-    var ad=g('ad'), tel=g('telefon'), email=g('eposta'), sehir=g('sehir'), tip=g('proje_tipi');
-    var msg='Merhaba PERBİOLA, ücretsiz keşif talebim var.%0A'+
-      '• Ad: '+encodeURIComponent(ad)+'%0A'+
-      '• Telefon: '+encodeURIComponent(tel)+'%0A'+
-      (email?'• E-posta: '+encodeURIComponent(email)+'%0A':'')+
-      '• Şehir: '+encodeURIComponent(sehir)+'%0A'+
-      '• Proje: '+encodeURIComponent(tip);
-    btn.disabled=true;
-    btn.textContent='Gönderiliyor...';
+  var f = document.getElementById('kesif-form'); if(!f) return;
+  var modal = document.getElementById('kesif-success-modal');
 
-    var payload = {
-      "Ad Soyad": ad,
-      "Telefon": tel,
-      "E-posta": email || 'Belirtilmedi',
-      "Şehir": sehir,
-      "Proje Tipi": tip,
-      "_subject": "Yeni Keşif Talebi: " + ad + " (" + sehir + " - " + tip + ")",
-      "_replyto": email || 'perbiola@hotmail.com',
-      "_template": "table",
-      "_autoresponse": "Sayın " + ad + ",\n\nPERBİOLA ücretsiz keşif talebiniz başarıyla tarafımıza ulaşmıştır. Bölge danışmanımız en kısa sürede keşif randevusu için sizinle iletişime geçecektir.\n\nSaygılarımızla,\nPERBİOLA Bioklimatik Pergola & Kış Bahçesi Sistemleri\nE-posta: info@perbiola.com.tr\nWeb: https://perbiola.com.tr\nWhatsApp: +90 544 727 74 69"
+  function openSuccessModal(data) {
+    if (!modal) return;
+    var sumAd = document.getElementById('pb-sum-ad');
+    var sumTel = document.getElementById('pb-sum-tel');
+    var sumEmail = document.getElementById('pb-sum-email');
+    var sumEmailRow = document.getElementById('pb-sum-email-row');
+    var sumSehir = document.getElementById('pb-sum-sehir');
+    var sumTip = document.getElementById('pb-sum-tip');
+
+    if (sumAd) sumAd.textContent = data.ad || '-';
+    if (sumTel) sumTel.textContent = data.tel || '-';
+    if (sumSehir) sumSehir.textContent = data.sehir || '-';
+    if (sumTip) sumTip.textContent = data.tip || '-';
+    if (sumEmailRow && sumEmail) {
+      if (data.email) {
+        sumEmail.textContent = data.email;
+        sumEmailRow.style.display = 'flex';
+      } else {
+        sumEmailRow.style.display = 'none';
+      }
+    }
+
+    modal.classList.add('is-active');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+
+    var closeBtn = document.getElementById('kesif-modal-close-btn');
+    var okBtn = document.getElementById('kesif-modal-ok-btn');
+
+    function closeModal() {
+      modal.classList.remove('is-active');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    if (closeBtn) closeBtn.onclick = closeModal;
+    if (okBtn) okBtn.onclick = closeModal;
+    modal.onclick = function(e) {
+      if (e.target === modal) closeModal();
     };
+    document.addEventListener('keydown', function escHandler(e) {
+      if (e.key === 'Escape' && modal.classList.contains('is-active')) {
+        closeModal();
+        document.removeEventListener('keydown', escHandler);
+      }
+    });
+  }
+
+  f.addEventListener('submit', function(e){
+    e.preventDefault();
+    var btn = f.querySelector('button[type=submit]'), d = new FormData(f);
+    var g = function(k){ return (d.get(k)||'').toString().trim(); };
+    var ad = g('ad'), tel = g('telefon'), email = g('eposta'), sehir = g('sehir'), tip = g('proje_tipi');
+
+    btn.disabled = true;
+    btn.textContent = (window.PB_I18N ? PB_I18N.t('cta.sending','Gönderiliyor...') : 'Gönderiliyor...');
+
+    var autoMsg = 'Sayın ' + (ad || 'Müşterimiz') + ',\n\n' +
+      'PERBİOLA ücretsiz keşif talebiniz başarıyla tarafımıza ulaşmıştır. ' +
+      'Bölge danışmanımız en kısa sürede keşif randevusu için sizinle iletişime geçecektir.\n\n' +
+      'Talep Detayları:\n' +
+      '• Ad Soyad: ' + ad + '\n' +
+      '• Telefon: ' + tel + '\n' +
+      '• Şehir: ' + sehir + '\n' +
+      '• Proje Tipi: ' + tip + '\n\n' +
+      'Saygılarımızla,\n' +
+      'PERBİOLA Bioklimatik Pergola & Kış Bahçesi Sistemleri\n' +
+      'E-posta: info@perbiola.com.tr\n' +
+      'Web: https://perbiola.com.tr\n' +
+      'WhatsApp: +90 544 727 74 69';
+
+    // 1) Müşteriye _autoresponse gönderimi (standart HTML POST via hidden iframe)
+    if (email) {
+      try {
+        var hf = document.createElement('form');
+        hf.method = 'POST';
+        hf.action = 'https://formsubmit.co/perbiola@hotmail.com';
+        hf.target = 'pb_form_iframe';
+        hf.style.display = 'none';
+
+        var fields = {
+          '_captcha': 'false',
+          '_template': 'table',
+          'email': email,
+          '_replyto': 'info@perbiola.com.tr',
+          '_subject': 'Yeni Keşif Talebi: ' + ad + ' (' + sehir + ' - ' + tip + ')',
+          'Ad Soyad': ad,
+          'Telefon': tel,
+          'E-posta': email,
+          'Şehir': sehir,
+          'Proje Tipi': tip,
+          '_autoresponse': autoMsg
+        };
+
+        for (var k in fields) {
+          var input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = k;
+          input.value = fields[k];
+          hf.appendChild(input);
+        }
+
+        document.body.appendChild(hf);
+        hf.submit();
+        setTimeout(function(){
+          if (hf.parentNode) hf.parentNode.removeChild(hf);
+        }, 3000);
+      } catch (errFrame) {
+        console.warn('Iframe autoresponse hatası:', errFrame);
+      }
+    }
+
+    // 2) AJAX ile şirket kutusuna (perbiola@hotmail.com) doğrudan iletim
+    var fd = new FormData();
+    fd.append('Ad Soyad', ad);
+    fd.append('Telefon', tel);
+    fd.append('E-posta', email || 'Belirtilmedi');
+    if (email) {
+      fd.append('email', email);
+      fd.append('_replyto', email);
+    } else {
+      fd.append('_replyto', 'info@perbiola.com.tr');
+    }
+    fd.append('Şehir', sehir);
+    fd.append('Proje Tipi', tip);
+    fd.append('_subject', 'Yeni Keşif Talebi: ' + ad + ' (' + sehir + ' - ' + tip + ')');
+    fd.append('_template', 'table');
 
     fetch('https://formsubmit.co/ajax/perbiola@hotmail.com', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify(payload)
-    }).catch(function(){})
-      .finally(function(){
-        btn.textContent=(window.PB_I18N?PB_I18N.t('cta.submitted'):'Talebiniz alındı ✓');
-        if(window.gtag) gtag('event','generate_lead',{form:'kesif'});
-        window.open('https://wa.me/'+WA+'?text='+msg,'_blank');
-        f.reset(); setTimeout(function(){btn.disabled=false;btn.textContent=(window.PB_I18N?PB_I18N.t('cta.submitBtn'):'Keşif Talebi Gönder');},4000);
-      });
+      headers: { 'Accept': 'application/json' },
+      body: fd
+    }).catch(function(err){
+      console.warn('FormSubmit keşif formu hatası:', err);
+    }).finally(function(){
+      btn.textContent = (window.PB_I18N ? PB_I18N.t('cta.submitted') : 'Talebiniz Alındı ✓');
+      if (window.gtag) gtag('event', 'generate_lead', { form: 'kesif' });
+
+      // Onay ekranını (modal) aç
+      openSuccessModal({ ad: ad, tel: tel, email: email, sehir: sehir, tip: tip });
+
+      f.reset();
+      setTimeout(function(){
+        btn.disabled = false;
+        btn.textContent = (window.PB_I18N ? PB_I18N.t('cta.submitBtn') : 'Keşif Talebi Gönder');
+      }, 4000);
+    });
   });
 })();
 </script>
 
+<iframe name="pb_form_iframe" id="pb_form_iframe" style="display:none;width:0;height:0;border:0;"></iframe>
 </body>
 </html>
